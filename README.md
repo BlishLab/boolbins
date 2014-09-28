@@ -36,7 +36,7 @@ optional arguments:
 ```
 
 This message is explaining the three inputs required to the program:
-- A user-specified thresholds file showing your chosen thresholds for each gate
+- A user-specified thresholds file showing your chosen thresholds (gates) for each marker
 - An optional cell number limit that tells the program how many cells to analyze per file
 - A path to the directory where you have stored your text files
 
