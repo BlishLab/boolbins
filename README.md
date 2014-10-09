@@ -35,8 +35,9 @@ optional arguments:
 
 ```
 
-This message is explaining the three inputs required to the program:
+This message is explaining the four inputs required to the program:
 - A user-specified thresholds file showing your chosen thresholds (gates) for each marker
+- A designated name for the output file where you want your results (must end in .csv)
 - An optional cell number limit that tells the program how many cells to analyze per file
 - A path to the directory where you have stored your text files
 
@@ -54,4 +55,4 @@ You also need to export all of the .txt files you want to analyze into a folder 
 
 With these things in place, you can run the program. Type `python boolbins.py` at the command line, followed by your arguments. It doesn't matter what order the arguments are in. If you like, you can drag and drop the folder containing your text files right onto the terminal window to get it to print the path to that folder.
 
-An example run might read: `python boolbins.py --thresholds myThresholds.csv my_text_files --output myResults --limit 10000`
+An example run might read: `python boolbins.py --thresholds myThresholds.csv my_text_files --output myResults.csv --limit 10000`
