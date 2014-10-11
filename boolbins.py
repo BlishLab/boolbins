@@ -174,7 +174,7 @@ if __name__ == '__main__':
     parser.add_argument('files', metavar='file', type=str, nargs='+', help='Files or directories to process')
 
     args = parser.parse_args()
-    log_level = logging.DEBUG if args.debug else logging.INFO
+    log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(level=log_level)
     try:
         run(args.thresholds, args.files, args.output, args.limit, args.diversity.strip())
