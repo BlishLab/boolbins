@@ -67,6 +67,10 @@ def get_frequencies_for_file(file_name, thresholds, limit):
     return frequencies
 
 
+def calculate_diversity(frequencies_by_header):
+    return 1.0 / sum([i*i for i in frequencies_by_header.values()])
+
+
 def make_pretty_name_for_bin_combo(combo):
     # each item in combo is like set("(Cd110)Dd: HLADR", "(Ce140)Dd: beads")
     if not combo:
@@ -75,7 +79,7 @@ def make_pretty_name_for_bin_combo(combo):
     return " ".join(sorted([i.split(" ")[-1] for i in combo]))
 
 
-def process_files(file_names, thresholds, output_file_name, limit):
+def process_files(file_names, thresholds, output_file_name, limit, diversity):
     frequencies_by_file = {f: get_frequencies_for_file(f, thresholds, limit) for f in file_names}
 
     # This is the set of all possible antibody combinations that are above the threshold on a cell.
@@ -87,10 +91,10 @@ def process_files(file_names, thresholds, output_file_name, limit):
     all_possible_bin_combos.sort(key=lambda x: (len(x), x))
     logging.debug("Got %s possible antibody combinations: %s" % (len(all_possible_bin_combos), all_possible_bin_combos))
 
+    files = frequencies_by_file.keys()
+    files.sort()
     with open(output_file_name, 'w') as output:
         w = csv.writer(output)
-        files = frequencies_by_file.keys()
-        files.sort()
 
         # Write out the first header row
         w.writerow([""] + files)
@@ -101,6 +105,14 @@ def process_files(file_names, thresholds, output_file_name, limit):
             for f in files:
                 row.append(frequencies_by_file[f].get(combo, 0))
             w.writerow(row)
+
+    # Output diversity scores
+    if diversity:
+        with open(diversity, 'w') as output:
+            w = csv.writer(output)
+            w.writerow(["File", "Diversity"])
+            for f in files:
+                w.writerow([f, calculate_diversity(frequencies_by_file[f])])
 
 
 def discover_all_files(headers, files_or_directories):
@@ -146,24 +158,25 @@ def get_thresholds_from_file(file_name):
     return headers, thresholds_per_header
 
 
-def run(threshold_file_name, file_names, output_file_name, limit):
+def run(threshold_file_name, file_names, output_file_name, limit, diversity):
     headers, thresholds = get_thresholds_from_file(threshold_file_name)
     logging.debug("Got thresholds: %s" % thresholds)
-    process_files(discover_all_files(headers, file_names), thresholds, output_file_name, limit)
+    process_files(discover_all_files(headers, file_names), thresholds, output_file_name, limit, diversity)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Performs boolean gating on flow cytometry data')
-    parser.add_argument('--thresholds', type=str, required=True, help='File with the thresholds to use for each antibody')
-    parser.add_argument('--output', type=str, default="output.csv", help='File to output the data to')
-    parser.add_argument('--debug', action="store_true", help='Show debug logging')
-    parser.add_argument('--limit', type=int, default=0, help='Process the first `limit` lines of each file, 0 (default) for all of them.')
+    parser.add_argument('-t', '--thresholds', type=str, required=True, help='File with the thresholds to use for each antibody')
+    parser.add_argument('-o', '--output', type=str, default="output.csv", help='File to output the data to')
+    parser.add_argument('-v', '--verbose', action="store_true", help='Show debug logging')
+    parser.add_argument('-l', '--limit', type=int, default=0, help='Process the first `limit` lines of each file, 0 (default) for all of them.')
+    parser.add_argument('-d', '--diversity', type=str, default="", help='If given, output diversity scores to this file')
     parser.add_argument('files', metavar='file', type=str, nargs='+', help='Files or directories to process')
 
     args = parser.parse_args()
     log_level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(level=log_level)
     try:
-        run(args.thresholds, args.files, args.output, args.limit)
+        run(args.thresholds, args.files, args.output, args.limit, args.diversity.strip())
     except BoolBinsException as e:
         logging.error("%s" % e)
