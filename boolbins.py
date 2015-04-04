@@ -152,7 +152,10 @@ def get_thresholds_from_file(file_name):
     thresholds_per_header = {}
     for i in xrange(len(IGNORED_INITIAL_COLUMNS), len(headers)):
         if to_include[i].lower().strip() in ["true", "yes", "1", "t"]:
-            thresholds_per_header[headers[i]] = float(thresholds[i])
+            try:
+                thresholds_per_header[headers[i]] = float(thresholds[i])
+            except ValueError as e:
+                raise BoolBinsException("Bad threshold for column %s (%s), could not convert threshold to number: '%s'" % (i, headers[i], thresholds[i]))
 
     logging.info("Loaded %s thresholds" % len(thresholds_per_header))
     return headers, thresholds_per_header
