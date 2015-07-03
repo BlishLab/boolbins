@@ -9,7 +9,7 @@ import contextlib
 
 
 IGNORED_INITIAL_COLUMNS = ["Time", "Cell_length"]
-
+IGNORED_INITIAL_COLUMNS_POSSIBILITY2 = ["Time: Time", "Event_length: Event_length"]
 
 class BoolBinsException(Exception): pass
 
@@ -142,7 +142,8 @@ def get_thresholds_from_file(file_name):
         thresholds = reader.next()
         to_include = reader.next()
 
-    if headers[:len(IGNORED_INITIAL_COLUMNS)] != IGNORED_INITIAL_COLUMNS:
+    if headers[:len(IGNORED_INITIAL_COLUMNS)] != IGNORED_INITIAL_COLUMNS && 
+       headers[:len(IGNORED_INITIAL_COLUMNS)] != IGNORED_INITIAL_COLUMNS_POSSIBILITY2:
         raise BoolBinsException("Badly formatted thresholds file. Needs initial headers: %s" % IGNORED_INITIAL_COLUMNS)
 
     if len(headers) != len(thresholds) or len(headers) != len(to_include):
