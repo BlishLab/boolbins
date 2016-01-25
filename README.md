@@ -1,6 +1,7 @@
 ## Installation
 
 Open a terminal window. Navigate to the directory where you want this code to go.
+If you're not sure what this means: the terminal is a [command line interface](https://en.wikipedia.org/wiki/Command-line_interface) that allows you to interact with the computer by typing commands. Here is a [list of commonly used commands](https://en.wikipedia.org/wiki/List_of_Unix_commands). Hint: start by typing cd followed by the filepath of the directory where you have your data.
 
 Next, type  
 
