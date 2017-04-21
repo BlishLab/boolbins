@@ -8,16 +8,15 @@ import collections
 import contextlib
 
 
-IGNORED_INITIAL_COLUMNS = ["Time", "Cell_length"]
-IGNORED_INITIAL_COLUMNS_POSSIBILITY2 = ["Time: Time", "Event_length: Event_length"]
 
 class BoolBinsException(Exception): pass
 
 
 @contextlib.contextmanager
 def safe_open_csv_file(file_name, minimum_columns=1):
-    """Try to open the file as a csv. If there's only one column in the first row, then try to open as a tsv.
-    It that still only has one column, throw an error."""
+    """Try to open the file as a csv. If commas don’t separate the columns, the reader will
+    only find one column, and try to open as tsv. If tabs also don’t delimit the columns,
+    this function throws an error."""
     with open(file_name, 'rU') as f:
         reader = csv.reader(f)
         if len(reader.next()) > minimum_columns:
@@ -30,7 +29,7 @@ def safe_open_csv_file(file_name, minimum_columns=1):
             f.seek(0)
             yield reader
             return
-    raise BoolBinsException("Error opening csv file %s, neither comma nor tab separated" % file_name)
+    raise BoolBinsException("Error opening input file %s, neither comma nor tab separated" % file_name)
 
 
 def get_frequencies_for_file(file_name, thresholds, limit):
@@ -47,7 +46,7 @@ def get_frequencies_for_file(file_name, thresholds, limit):
             if limit == 0 or total_cells <= limit:
                 processed_cells += 1
                 headers_above_threshold = set()
-                for i in xrange(len(IGNORED_INITIAL_COLUMNS), len(header)):
+                for i in xrange(len(header)):
                     if header[i] in thresholds and float(row[i]) > thresholds[header[i]]:
                         headers_above_threshold.add(header[i])
                 # Note, the empty set represents null cells
@@ -142,15 +141,13 @@ def get_thresholds_from_file(file_name):
         thresholds = reader.next()
         to_include = reader.next()
 
-    if (headers[:len(IGNORED_INITIAL_COLUMNS)] != IGNORED_INITIAL_COLUMNS) and (headers[:len(IGNORED_INITIAL_COLUMNS)] != IGNORED_INITIAL_COLUMNS_POSSIBILITY2):
-        raise BoolBinsException("Badly formatted thresholds file. Needs initial headers: %s" % IGNORED_INITIAL_COLUMNS)
 
     if len(headers) != len(thresholds) or len(headers) != len(to_include):
         raise BoolBinsException("Invalid threshold file, the headers (%s), thresholds (%s), and inclusions (%s) row lengths don't match" % (
             len(headers), len(thresholds), len(to_include)))
 
     thresholds_per_header = {}
-    for i in xrange(len(IGNORED_INITIAL_COLUMNS), len(headers)):
+    for i in xrange(len(headers)):
         if to_include[i].lower().strip() in ["true", "yes", "1", "t"]:
             try:
                 thresholds_per_header[headers[i]] = float(thresholds[i])
@@ -169,7 +166,7 @@ def run(threshold_file_name, file_names, output_file_name, limit, diversity):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Performs boolean gating on flow cytometry data')
-    parser.add_argument('-t', '--thresholds', type=str, required=True, help='File with the thresholds to use for each antibody')
+    parser.add_argument('-t', '--thresholds', type=str, required=True, help='File with the thresholds to use for each antibody. See readme for instructions on formatting this file.')
     parser.add_argument('-o', '--output', type=str, default="output.csv", help='File to output the data to')
     parser.add_argument('-v', '--verbose', action="store_true", help='Show debug logging')
     parser.add_argument('-l', '--limit', type=int, default=0, help='Process the first `limit` lines of each file, 0 (default) for all of them.')
@@ -183,3 +180,4 @@ if __name__ == '__main__':
         run(args.thresholds, args.files, args.output, args.limit, args.diversity.strip())
     except BoolBinsException as e:
         logging.error("%s" % e)
+
