@@ -14,8 +14,8 @@ class BoolBinsException(Exception): pass
 
 @contextlib.contextmanager
 def safe_open_csv_file(file_name, minimum_columns=1):
-    """Try to open the file as a csv. If commas don’t separate the columns, the reader will
-    only find one column, and try to open as tsv. If tabs also don’t delimit the columns,
+    """Try to open the file as a csv. If commas don't separate the columns, the reader will
+    only find one column, and try to open as tsv. If tabs also don't delimit the columns,
     this function throws an error."""
     with open(file_name, 'rU') as f:
         reader = csv.reader(f)
